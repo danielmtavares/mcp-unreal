@@ -56,6 +56,15 @@ func OpenIndex(path string) (*Index, error) {
 	return &Index{index: idx}, nil
 }
 
+// OpenReadOnly allows concurrent MCP processes to share the documentation index.
+func OpenReadOnly(path string) (*Index, error) {
+	idx, err := bleve.OpenUsing(path, map[string]interface{}{"read_only": true})
+	if err != nil {
+		return nil, fmt.Errorf("opening read-only doc index at %s: %w", path, err)
+	}
+	return &Index{index: idx}, nil
+}
+
 // OpenOrCreate opens an existing index or creates a new one if it doesn't exist.
 func OpenOrCreate(path string) (*Index, error) {
 	idx, err := OpenIndex(path)

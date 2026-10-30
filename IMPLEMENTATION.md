@@ -235,7 +235,12 @@ mcp-unreal --build-index \
     --output ./docs/index.bleve
 ```
 
-The index ships alongside the binary (or gets built on first run). At runtime, `lookup_docs` queries are sub-millisecond.
+Build the index explicitly with `--build-index` before starting clients. Runtime
+startup uses `docs.OpenReadOnly`, allowing multiple MCP processes to share the
+same index without contending for a writer lock. A missing or unreadable index
+disables only the documentation tools; the remaining tools still register.
+Stop all clients before rebuilding the index. At runtime, `lookup_docs` queries
+are sub-millisecond.
 
 ### 4.4 Implementation
 

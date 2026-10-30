@@ -263,6 +263,11 @@ Use `get_level_actors` to discover actor paths, and `search_assets` to find asse
 
 ## Configuration
 
+Normal server startup opens the documentation index read-only so multiple MCP
+sessions can share it. Build the index with `mcp-unreal --build-index` before
+starting clients. If the index is missing, the server still starts, but documentation
+lookup tools are unavailable. Stop all sessions before rebuilding the index.
+
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `UE_EDITOR_PATH` | Platform-dependent | Path to `UnrealEditor-Cmd` binary |

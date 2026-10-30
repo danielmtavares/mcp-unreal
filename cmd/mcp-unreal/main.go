@@ -115,7 +115,7 @@ func registerTools(server *mcp.Server, cfg *config.Config, logger *slog.Logger) 
 	headlessHandler.RegisterProject(server)
 
 	// Phase 3: Documentation lookup tools (IMPLEMENTATION.md §4).
-	docIdx, err := docs.OpenOrCreate(cfg.DocsIndexPath)
+	docIdx, err := docs.OpenReadOnly(cfg.DocsIndexPath)
 	if err != nil {
 		logger.Warn("documentation index unavailable, lookup tools disabled", "path", cfg.DocsIndexPath, "error", err)
 	} else {

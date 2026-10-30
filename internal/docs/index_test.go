@@ -51,6 +51,51 @@ func TestCreateAndOpenIndex(t *testing.T) {
 	}
 }
 
+func TestOpenReadOnly_ConcurrentReaders(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "shared.bleve")
+	writer, err := CreateIndex(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := writer.IndexDoc(DocEntry{ID: "actor", Title: "Actor", Content: "spawn actor"}); err != nil {
+		_ = writer.Close()
+		t.Fatal(err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	// Keep both handles open, as separate MCP sessions do at startup.
+	cleanup := t.Cleanup
+	for _, name := range []string{"first session", "second session"} {
+		t.Run(name, func(t *testing.T) {
+			reader, err := OpenReadOnly(path)
+			if err != nil {
+				t.Fatalf("OpenReadOnly: %v", err)
+			}
+			cleanup(func() { _ = reader.Close() })
+			_, out, err := reader.LookupDocs(context.Background(), nil, LookupDocsInput{Query: "spawn"})
+			if err != nil {
+				t.Fatalf("LookupDocs: %v", err)
+			}
+			if out.Total != 1 {
+				t.Errorf("expected one result, got %d", out.Total)
+			}
+		})
+	}
+}
+
+func TestOpenReadOnly_MissingIndex(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "missing.bleve")
+	if idx, err := OpenReadOnly(path); err == nil {
+		_ = idx.Close()
+		t.Fatal("expected an error for a missing index")
+	}
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		t.Fatalf("read-only open should not create an index; stat error: %v", err)
+	}
+}
+
 func TestIndexAndSearch(t *testing.T) {
 	idx := createTestIndex(t)
 
